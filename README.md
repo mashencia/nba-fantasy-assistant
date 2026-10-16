@@ -4,7 +4,7 @@ A personal tool for an ESPN H2H **points** fantasy basketball league (2026-27 se
 
 | Part | Tech | Folder | Status |
 |---|---|---|---|
-| Data job | Python, pandas, nba_api, espn-api | `data-job/` | Phase 1a: scoring + blend formulas |
+| Data job | Python, pandas, nba_api, espn-api | `data-job/` | Phase 1b: NBA stats → rankings snapshot (ESPN in 1c) |
 | API | ASP.NET Core, EF Core, SQLite | `backend/` | not started |
 | UI | Angular | `frontend/` | not started |
 
@@ -32,10 +32,36 @@ The plan and architecture decisions are in [docs/PLAN.md](docs/PLAN.md). The cha
 
 ## Data job (Python)
 
+### First-time setup
 ```powershell
 cd data-job
 py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -e .
+```
+In VS Code, choose `data-job\.venv\Scripts\python.exe` as the interpreter (Ctrl+Shift+P → "Python: Select Interpreter").
+
+### Refresh the data
+```powershell
+cd data-job
+.\.venv\Scripts\python.exe -m fantasy_job refresh             # uses cached API responses when fresh
+.\.venv\Scripts\python.exe -m fantasy_job refresh --no-cache  # force a new pull from stats.nba.com
+```
+Each run makes 3 calls to stats.nba.com (2025-26 regular season, 2026-27 preseason, 2026-27 regular season) and writes a snapshot to `data/snapshots/<UTC timestamp>/`:
+
+| File | Contents |
+|---|---|
+| `manifest.json` | schema version, generation time, per-source row counts, cache/staleness flags, blend constants |
+| `players.json` | NBA player id, name, team, age |
+| `stat_lines.json` | season totals per player per season/type (GP, MIN, PTS, REB, AST, STL, BLK, TOV, FGM, FGA, FG3M, FTM, FTA, DD2, TD3) |
+| `valuations.json` | per-source GP and FP/G, blend, availability, score, rank |
+
+`data/snapshots/latest.txt` names the newest complete snapshot. The 10 newest are kept.
+
+**Caching:** a finished season is cached for 7 days and in-progress seasons for 6 hours (`data/cache/nba/`). If stats.nba.com fails after 3 retries, the last cached copy is used and flagged `"stale": true` in the manifest. If there's no cache either, the refresh stops and the previous snapshot stays in place.
+
+### Tests
+```powershell
 .\.venv\Scripts\python.exe -m pytest
 ```
 

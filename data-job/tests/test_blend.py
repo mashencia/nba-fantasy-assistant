@@ -71,6 +71,13 @@ def test_rookie_with_only_preseason_is_shrunk_toward_prior():
     assert b * availability(0) == pytest.approx(20.6, abs=0.06)
 
 
+def test_nan_games_played_is_treated_as_zero():
+    # Outer-merged DataFrames carry NaN where a player has no games in a source.
+    nan = float("nan")
+    assert blend_fp(nan, nan, 34.75, 2) == blend_fp(None, 0, 34.75, 2)
+    assert availability(nan) == pytest.approx(0.85)
+
+
 def test_availability_range():
     assert availability(0) == pytest.approx(0.85)
     assert availability(65) == pytest.approx(1.0)

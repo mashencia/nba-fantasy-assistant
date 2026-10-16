@@ -38,7 +38,7 @@ Score     = blend · (0.85 + 0.15 · min(GP_last / 65, 1))         (availability
 ## Phases
 0. Repo scaffolding: done
 1a. Scoring + blend formulas + tests: done
-1b. nba_api pulls (2025-26 regular, 2026-27 preseason and regular) → snapshot
+1b. nba_api pulls (2025-26 regular, 2026-27 preseason and regular) → snapshot: done
 1c. ESPN: league settings, scoring weights, rosters, FAs, matchup, injuries, positions → League Score
 2a. .NET API: EF model, snapshot importer, `/rankings`, `/players/{id}`
 2b. `/league`, `/my-team`, `/waivers`, `/matchup/current`, `/refresh`
@@ -47,4 +47,5 @@ Score     = blend · (0.85 + 0.15 · min(GP_last / 65, 1))         (availability
 4. README completion
 
 ## Open items
-- Availability still uses 2025-26 GP. Once the regular season is a few weeks in, consider using the current-season games-missed rate instead. Decide in 1b.
+- Availability still uses 2025-26 GP. Once the regular season is a few weeks in, consider using the current-season games-missed rate instead. **Waiting on owner decision** (raised in 1b).
+- Preseason weight: a player who skipped preseason and then plays 2–3 low-minute games can drop up to ~3 points (e.g. Keegan Murray 22.1 → 18.8). This is how the file's formula behaves; flagged for owner review.

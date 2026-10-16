@@ -11,13 +11,19 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 
+def _num(x: float | None) -> float:
+    """None/NaN -> 0. Merged DataFrames use NaN for 'no games in this source'."""
+    return 0.0 if x is None or pd.isna(x) else float(x)
+
+
 @dataclass(frozen=True)
 class SourceWeight:
     max_weight: float
     full_gp: float
 
     def weight(self, gp: float | None) -> float:
-        if not gp or gp <= 0:
+        gp = _num(gp)
+        if gp <= 0:
             return 0.0
         return self.max_weight * min(gp / self.full_gp, 1.0)
 
@@ -63,7 +69,7 @@ def blend_fp(
 
 
 def availability(last_gp: float | None, config: BlendConfig = DEFAULT_CONFIG) -> float:
-    gp = max(last_gp or 0, 0)
+    gp = max(_num(last_gp), 0)
     ratio = min(gp / config.availability_full_gp, 1.0)
     return config.availability_floor + (1 - config.availability_floor) * ratio
 
@@ -73,7 +79,7 @@ def score(blend: float, last_gp: float | None, config: BlendConfig = DEFAULT_CON
 
 
 def compute_scores(df: pd.DataFrame, config: BlendConfig = DEFAULT_CONFIG) -> pd.DataFrame:
-    """Add Blend, Score and Rank columns.
+    """Add blend, availability, score and rank columns.
 
     Expected columns: last_fp, last_gp, pre_fp, pre_gp; optional cur_fp, cur_gp.
     """
@@ -85,6 +91,7 @@ def compute_scores(df: pd.DataFrame, config: BlendConfig = DEFAULT_CONFIG) -> pd
         blend_fp(r.last_fp, r.last_gp, r.pre_fp, r.pre_gp, r.cur_fp, r.cur_gp, config)
         for r in out.itertuples()
     ]
-    out["score"] = [score(b, gp, config) for b, gp in zip(out["blend"], out["last_gp"])]
+    out["availability"] = [availability(gp, config) for gp in out["last_gp"]]
+    out["score"] = out["blend"] * out["availability"]
     out["rank"] = out["score"].rank(ascending=False, method="first").astype(int)
     return out.sort_values("rank")

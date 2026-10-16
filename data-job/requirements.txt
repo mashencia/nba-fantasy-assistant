@@ -1,4 +1,5 @@
-# Pinned to the versions verified in Phase 1a. nba_api and espn-api get added in 1b/1c.
+# Pinned to verified versions. espn-api gets added in Phase 1c.
 pandas==3.0.6
 python-dotenv==1.2.4
+nba_api==1.11.4
 pytest==9.1.1
