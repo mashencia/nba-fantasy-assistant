@@ -1,0 +1,30 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Generated data (snapshots, caches, SQLite DB) ---
+data/
+
+# --- Python ---
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# --- .NET ---
+bin/
+obj/
+*.user
+.vs/
+
+# --- Angular / Node ---
+node_modules/
+dist/
+.angular/
+
+# --- Editors / OS ---
+.idea/
+Thumbs.db
+.DS_Store
